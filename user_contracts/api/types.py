@@ -14,15 +14,3 @@ class ContractType(DjangoObjectType):
     class Meta:
         model = Contract
         fields = "__all__"
-
-
-# query
-class Query(graphene.ObjectType):
-    all_users = graphene.List(UserType)
-    all_contracts = graphene.List(ContractType)
-
-    def resolve_all_users(self, info):
-        return User.objects.all()
-
-    def resolve_all_contracts(self, info):
-        return Contract.objects.all()
