@@ -10,11 +10,11 @@ class Query(graphene.ObjectType):
     all_contracts = graphene.List(ContractType)
     get_user = graphene.Field(UserType, id=graphene.Int(required=True))
     get_contract = graphene.Field(ContractType, id=graphene.Int(required=True))
-    get_contracts_by_user_id = graphene.List(ContractType, id=graphene.Int(required=True))
-
+    get_contracts_by_user_id = graphene.List(
+        ContractType, id=graphene.Int(required=True)
+    )
 
     def resolve_get_contracts_by_user_id(self, info, id):
-        print("USER ID --->", id)
         try:
             return Contract.objects.filter(user=id)
         except Contract.DoesNotExist:

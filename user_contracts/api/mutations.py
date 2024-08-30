@@ -66,7 +66,9 @@ class DeleteUserMutation(graphene.Mutation):
         try:
             user = User.objects.get(pk=id)
             user.delete()
-            return DeleteUserMutation(success=True, message="USer deleted successfully.")
+            return DeleteUserMutation(
+                success=True, message="User deleted successfully."
+            )
         except Exception as e:
             raise GraphQLError(f"Could not delete user: {str(e)}")
 
@@ -89,7 +91,11 @@ class CreateContractMutation(graphene.Mutation):
                 amount=input.amount,
             )
             contract.save()
-            return CreateContractMutation(success=True, message="Contract created successfully.", contract=contract)
+            return CreateContractMutation(
+                success=True,
+                message="Contract created successfully.",
+                contract=contract,
+            )
         except User.DoesNotExist:
             raise GraphQLError(
                 "You cannot create  a contract with a user that does not exist."
@@ -117,7 +123,11 @@ class UpdateContractMutation(graphene.Mutation):
             if input.amount:
                 contract.amount = input.amount
             contract.save()
-            return UpdateContractMutation(success=True, message="Contract updated.", contract=contract)
+            return UpdateContractMutation(
+                success=True,
+                message="Contract updated successfully.",
+                contract=contract,
+            )
         except Contract.DoesNotExist:
             raise GraphQLError(f"This contract does not exist.")
         except Exception as e:
@@ -135,7 +145,9 @@ class DeleteContractMutation(graphene.Mutation):
         try:
             contract = Contract.objects.get(pk=id)
             contract.delete()
-            return DeleteUserMutation(success=True, message="Contract deleted successfully.")
+            return DeleteUserMutation(
+                success=True, message="Contract deleted successfully."
+            )
         except Exception as e:
             raise GraphQLError(f"Exception error: {str(e)}")
 
