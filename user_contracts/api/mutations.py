@@ -18,7 +18,7 @@ class CreateUserMutation(graphene.Mutation):
     def mutate(self, info, input):
         try:
             user = User.objects.create_user(
-                username=input.usernane, email=input.email, password=input.password
+                username=input.username, email=input.email, password=input.password
             )
             return CreateUserMutation(
                 success=True, message="User created successfully.", user=user
@@ -35,7 +35,7 @@ class UpdateUserMutation(graphene.Mutation):
         input = UserInput(required=True)
 
     user = graphene.Field(UserType)
-    sucess = graphene.Boolean()
+    success = graphene.Boolean()
     message = graphene.String()
 
     def mutate(self, info, id, input):
@@ -66,7 +66,7 @@ class DeleteUserMutation(graphene.Mutation):
         try:
             user = User.objects.get(pk=id)
             user.delete()
-            return DeleteUserMutation(success=True)
+            return DeleteUserMutation(success=True, message="USer deleted successfully.")
         except Exception as e:
             raise GraphQLError(f"Could not delete user: {str(e)}")
 
@@ -76,6 +76,8 @@ class CreateContractMutation(graphene.Mutation):
         input = ContractInput(required=True)
 
     contract = graphene.Field(ContractType)
+    success = graphene.Boolean()
+    message = graphene.String()
 
     def mutate(self, info, input):
         try:
@@ -87,7 +89,7 @@ class CreateContractMutation(graphene.Mutation):
                 amount=input.amount,
             )
             contract.save()
-            return CreateContractMutation(contract=contract)
+            return CreateContractMutation(success=True, message="Contract created successfully.", contract=contract)
         except User.DoesNotExist:
             raise GraphQLError(
                 "You cannot create  a contract with a user that does not exist."
@@ -102,6 +104,8 @@ class UpdateContractMutation(graphene.Mutation):
         input = ContractInput(required=True)
 
     contract = graphene.Field(ContractType)
+    success = graphene.Boolean()
+    message = graphene.String()
 
     def mutate(self, info, id, input):
         try:
@@ -113,7 +117,7 @@ class UpdateContractMutation(graphene.Mutation):
             if input.amount:
                 contract.amount = input.amount
             contract.save()
-            return UpdateContractMutation(contract=contract)
+            return UpdateContractMutation(success=True, message="Contract updated.", contract=contract)
         except Contract.DoesNotExist:
             raise GraphQLError(f"This contract does not exist.")
         except Exception as e:
@@ -125,12 +129,13 @@ class DeleteContractMutation(graphene.Mutation):
         id = graphene.ID(required=True)
 
     success = graphene.Boolean()
+    message = graphene.String()
 
     def mutate(self, info, id):
         try:
             contract = Contract.objects.get(pk=id)
             contract.delete()
-            return DeleteUserMutation(success=True)
+            return DeleteUserMutation(success=True, message="Contract deleted successfully.")
         except Exception as e:
             raise GraphQLError(f"Exception error: {str(e)}")
 

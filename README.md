@@ -25,7 +25,7 @@ query {
   allContracts {
     id
     description
-    userId
+    user
     createdAt
     fidelity
     amount
@@ -51,10 +51,12 @@ Description: Fetches a single user by their id. Replace 1 with the actual user I
 ***Query:***
 ```graphql
 query {
-  getContract(id: 1) {
+  getContract(id: 2) {
     id
     description
-    userId
+    user {
+      id
+    }
     createdAt
     fidelity
     amount
@@ -67,16 +69,15 @@ Description: Fetches a single contract by its id. Replace 1 with the actual cont
 ***Query:***
 ```graphql
 query {
-  getContractsByUser(userId: 1) {
-    contracts {
+  getContractsByUserId(id:4){
+    id
+    amount
+    description
+    fidelity
+    amount
+    user {
       id
-      description
-      userId
-      createdAt
-      fidelity
-      amount
     }
-    nextToken
   }
 }
 ```
@@ -143,19 +144,23 @@ Description: Deletes a user by id. Replace 1 with the user ID.
 ```graphql
 mutation {
   createContract(input: {
-    description: "New contract",
+    description: "Super New contract",
     userId: 1,
     fidelity: 10,
-    amount: 100.00
+    amount: "102.50"
   }) {
     contract {
       id
       description
-      userId
+      user {
+        id
+      }
       createdAt
       fidelity
       amount
     }
+    success
+		message
   }
 }
 ```
@@ -165,19 +170,23 @@ Description: Creates a new contract. Replace description, userId, fidelity, and 
 ***Mutation:***
 ```graphql
 mutation {
-  updateContract(id: 1, input: {
-    description: "Updated contract",
+  updateContract(id: 2, input: {
+    description: "Updated contract123",
     fidelity: 20,
-    amount: 150.00
+    amount: "150.00"
   }) {
     contract {
       id
       description
-      userId
+      user {
+        id
+      }
       createdAt
       fidelity
       amount
     }
+    message
+		success
   }
 }
 ```
