@@ -2,6 +2,30 @@
 
 This README provides information on how to use the GraphQL API implemented for managing users and contracts. The API allows you to perform CRUD operations on both `User` and `Contract` models.
 
+## Authentication
+
+### 1. Create user
+```bash
+curl -X POST http://localhost:8000/graphql/ \
+-H "Content-Type: application/json" \
+-d '{"query": "mutation { createUser(input: {username: \"user1\", email: \"user1@example.com\", password: \"password123\"}) { user { id username email } success message } }"}'
+```
+
+### 2. Obtain token
+```bash
+curl -X POST http://localhost:8000/graphql/ \
+-H "Content-Type: application/json" \
+-d '{"query": "mutation { tokenAuth(username: \"user1\", password: \"password123\") { token } }"}'
+```
+
+### 3. List Users with Bearer Token
+Replace `YOUR_JWT_TOKEN` with the token obtained from the previous step.
+```bash
+curl -X POST http://localhost:8000/graphql/ \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_JWT_TOKEN" \
+-d '{"query": "query { allUsers { id username email } }"}'
+```
 ## Queries
 
 ### Get All Users

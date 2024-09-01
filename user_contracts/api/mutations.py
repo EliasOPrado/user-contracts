@@ -1,5 +1,7 @@
 import graphene
+import graphql_jwt
 from graphql import GraphQLError
+from graphql_jwt.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from user_contracts.models import Contract
@@ -38,6 +40,7 @@ class UpdateUserMutation(graphene.Mutation):
     success = graphene.Boolean()
     message = graphene.String()
 
+    @login_required
     def mutate(self, info, id, input):
         try:
             user = User.objects.get(pk=id)
@@ -62,6 +65,7 @@ class DeleteUserMutation(graphene.Mutation):
     success = graphene.Boolean()
     message = graphene.String()
 
+    @login_required
     def mutate(self, info, id):
         try:
             user = User.objects.get(pk=id)
@@ -81,6 +85,7 @@ class CreateContractMutation(graphene.Mutation):
     success = graphene.Boolean()
     message = graphene.String()
 
+    @login_required
     def mutate(self, info, input):
         try:
             user = User.objects.get(pk=input.user_id)
@@ -113,6 +118,7 @@ class UpdateContractMutation(graphene.Mutation):
     success = graphene.Boolean()
     message = graphene.String()
 
+    @login_required
     def mutate(self, info, id, input):
         try:
             contract = Contract.objects.get(pk=id)
@@ -141,6 +147,7 @@ class DeleteContractMutation(graphene.Mutation):
     success = graphene.Boolean()
     message = graphene.String()
 
+    @login_required
     def mutate(self, info, id):
         try:
             contract = Contract.objects.get(pk=id)
@@ -153,6 +160,10 @@ class DeleteContractMutation(graphene.Mutation):
 
 
 class Mutation(graphene.ObjectType):
+    token_auth = graphql_jwt.ObtainJSONWebToken.Field()
+    verify_token = graphql_jwt.Verify.Field()
+    refresh_token = graphql_jwt.Refresh.Field()
+
     create_user = CreateUserMutation.Field()
     update_user = UpdateUserMutation.Field()
     delete_user = DeleteUserMutation.Field()
