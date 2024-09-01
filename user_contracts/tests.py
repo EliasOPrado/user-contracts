@@ -1,4 +1,5 @@
 import graphene
+import json
 from decimal import Decimal
 from django.contrib.auth.models import User
 from user_contracts.models import Contract
@@ -7,6 +8,8 @@ from user_contracts.api.mutations import Mutation
 from user_contracts.api.schema import schema
 from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase
+from graphene_django.utils.testing import graphql_query
+
 
 
 # Create your tests here.
@@ -28,6 +31,24 @@ class GraphqlTestCase(TestCase):
             description="Contract 2", user=self.user2, fidelity=24, amount=200.75
         )
 
+        # Obtain JWT token for authentication
+        self.token = self.get_token_for_user(self.user1)
+
+    def get_token_for_user(self, user):
+        graphql_url = 'http://localhost:8000/graphql/'  # Update this with your actual URL
+        response = self.client.post(graphql_url, json.dumps({
+            'query': '''
+                mutation {
+                    tokenAuth(username: "user1", password: "password123") {
+                        token
+                    }
+                }
+            '''
+        }), content_type='application/json')
+
+        data = json.loads(response.content)
+        return data['data']["tokenAuth"]["token"]
+
     def get_object_or_none(self, model_class, **kwargs):
         try:
             return model_class.objects.get(**kwargs)
@@ -44,14 +65,19 @@ class GraphqlTestCase(TestCase):
                 }
             }
         """
-        schema = graphene.Schema(query=Query)
-        result = schema.execute(query)
-        self.assertIsNone(result.errors)
-        self.assertIsNotNone(result.data["allUsers"])
-        self.assertEqual(result.data["allUsers"][0]["email"], self.user1.email)
-        self.assertEqual(result.data["allUsers"][0]["username"], self.user1.username)
-        self.assertEqual(result.data["allUsers"][1]["email"], self.user2.email)
-        self.assertEqual(result.data["allUsers"][1]["username"], self.user2.username)
+        response = self.client.post(
+            '/graphql/', 
+            json.dumps({'query': query}),
+            content_type='application/json',
+            HTTP_AUTHORIZATION=f"Bearer {self.token}"
+        )
+        content = json.loads(response.content)['data']
+
+        self.assertIsNotNone(content['allUsers'])
+        self.assertEqual(content['allUsers'][0]['email'], self.user1.email)
+        self.assertEqual(content["allUsers"][0]["username"], self.user1.username)
+        self.assertEqual(content["allUsers"][1]["email"], self.user2.email)
+        self.assertEqual(content["allUsers"][1]["username"], self.user2.username)
 
     def test_get_user_by_id(self):
         query = f"""
@@ -63,16 +89,45 @@ class GraphqlTestCase(TestCase):
                 }}
             }}
         """
-        schema = graphene.Schema(query=Query)
-        result = schema.execute(query)
-        self.assertIsNone(result.errors)
-        self.assertIsNotNone(result.data["getUser"])
-        self.assertEqual(result.data["getUser"]["id"], str(self.user1.id))
-        self.assertEqual(result.data["getUser"]["username"], self.user1.username)
-        self.assertEqual(result.data["getUser"]["email"], self.user1.email)
+        response = self.client.post(
+            '/graphql/', 
+            json.dumps({'query': query}),
+            content_type='application/json',
+            HTTP_AUTHORIZATION=f"Bearer {self.token}"
+        )
+        content = json.loads(response.content)['data'] 
+        self.assertIsNotNone(content["getUser"])
+        self.assertEqual(content["getUser"]["id"], str(self.user1.id))
+        self.assertEqual(content["getUser"]["username"], self.user1.username)
+        self.assertEqual(content["getUser"]["email"], self.user1.email)
 
     def test_get_contracts_by_user_id(self):
-        pass
+        query = f"""
+            query {{
+                getContractsByUserId(id:{self.user1.id}){{
+                    id
+                    amount
+                    description
+                    fidelity
+                    amount
+                    user {{
+                    id
+                    }}
+                }}
+            }}
+        """
+        response = self.client.post(
+            '/graphql/', 
+            json.dumps({'query': query}),
+            content_type='application/json',
+            HTTP_AUTHORIZATION=f"Bearer {self.token}"
+        )
+        content = json.loads(response.content)['data']
+        self.assertIsNotNone(content['getContractsByUserId'])
+        self.assertEqual(Decimal(content['getContractsByUserId'][0]['amount']), self.contract1.amount)
+        self.assertEqual(content['getContractsByUserId'][0]['description'], self.contract1.description)
+        self.assertEqual(content['getContractsByUserId'][0]['fidelity'], self.contract1.fidelity)
+        self.assertEqual(int(content['getContractsByUserId'][0]['user']['id']), self.user1.id)
 
     def test_update_user(self):
         query = f"""
@@ -89,19 +144,24 @@ class GraphqlTestCase(TestCase):
                 }}
             }}
         """
-        schema = graphene.Schema(query=Query)
-        result = schema.execute(query)
-        self.assertIsNone(result.errors)
-        self.assertIsNotNone(result.data["getContractsByUserId"])
+        response = self.client.post(
+            '/graphql/', 
+            json.dumps({'query': query}),
+            content_type='application/json',
+            HTTP_AUTHORIZATION=f"Bearer {self.token}"
+        )
+        content = json.loads(response.content)['data']
+
+        self.assertIsNotNone(content["getContractsByUserId"])
         self.assertEqual(
-            int(result.data["getContractsByUserId"][0]["user"]["id"]), self.user1.id
+            int(content["getContractsByUserId"][0]["user"]["id"]), self.user1.id
         )
         self.assertEqual(
-            Decimal(result.data["getContractsByUserId"][0]["amount"]),
+            Decimal(content["getContractsByUserId"][0]["amount"]),
             self.contract1.amount,
         )
         self.assertEqual(
-            result.data["getContractsByUserId"][0]["description"],
+            content["getContractsByUserId"][0]["description"],
             self.contract1.description,
         )
 
@@ -123,18 +183,22 @@ class GraphqlTestCase(TestCase):
                 }}
             }}
         """
-        schema = graphene.Schema(mutation=Mutation, query=Query)
-        result = schema.execute(query)
-        updated_user = User.objects.get(id=self.user1.id)
-        self.assertIsNone(result.errors)
-        self.assertIsNotNone(result.data["updateUser"])
-        self.assertEqual(int(result.data["updateUser"]["user"]["id"]), self.user1.id)
-        self.assertEqual(
-            result.data["updateUser"]["user"]["username"], updated_user.username
+        response = self.client.post(
+            '/graphql/', 
+            json.dumps({'query': query}),
+            content_type='application/json',
+            HTTP_AUTHORIZATION=f"Bearer {self.token}"
         )
-        self.assertEqual(result.data["updateUser"]["user"]["username"], "updateduser")
+        content = json.loads(response.content)['data']
+        updated_user = User.objects.get(id=self.user1.id)
+        self.assertIsNotNone(content["updateUser"])
+        self.assertEqual(int(content["updateUser"]["user"]["id"]), self.user1.id)
         self.assertEqual(
-            result.data["updateUser"]["message"], "User updated successfully."
+            content["updateUser"]["user"]["username"], updated_user.username
+        )
+        self.assertEqual(content["updateUser"]["user"]["username"], "updateduser")
+        self.assertEqual(
+            content["updateUser"]["message"], "User updated successfully."
         )
 
     def test_delete_user(self):
@@ -146,14 +210,19 @@ class GraphqlTestCase(TestCase):
                 }}
             }}
         """
-        schema = graphene.Schema(mutation=Mutation, query=Query)
-        result = schema.execute(query)
+        response = self.client.post(
+            '/graphql/', 
+            json.dumps({'query': query}),
+            content_type='application/json',
+            HTTP_AUTHORIZATION=f"Bearer {self.token}"
+        )
+        content = json.loads(response.content)['data']
         check_deleted_user = self.get_object_or_none(User, id=self.user1.id)
-        self.assertIsNone(result.errors)
+        
         self.assertEqual(check_deleted_user, None)
-        self.assertIsNotNone(result.data["deleteUser"])
+        self.assertIsNotNone(content["deleteUser"])
         self.assertEqual(
-            result.data["deleteUser"]["message"], "User deleted successfully."
+            content["deleteUser"]["message"], "User deleted successfully."
         )
 
     def test_list_contracts(self):
@@ -171,19 +240,23 @@ class GraphqlTestCase(TestCase):
                 }
             }
         """
-        schema = graphene.Schema(query=Query)
-        result = schema.execute(query)
-        self.assertIsNone(result.errors)
-        self.assertIsNotNone(result.data["allContracts"])
-        self.assertEqual(int(result.data["allContracts"][0]["id"]), self.contract1.id)
+        response = self.client.post(
+            '/graphql/', 
+            json.dumps({'query': query}),
+            content_type='application/json',
+            HTTP_AUTHORIZATION=f"Bearer {self.token}"
+        )
+        content = json.loads(response.content)['data']
+        self.assertIsNotNone(content["allContracts"])
+        self.assertEqual(int(content["allContracts"][0]["id"]), self.contract1.id)
         self.assertEqual(
-            result.data["allContracts"][0]["description"], self.contract1.description
+            content["allContracts"][0]["description"], self.contract1.description
         )
         self.assertEqual(
-            int(result.data["allContracts"][0]["user"]["id"]), self.user1.id
+            int(content["allContracts"][0]["user"]["id"]), self.user1.id
         )
         self.assertEqual(
-            int(result.data["allContracts"][1]["user"]["id"]), self.user2.id
+            int(content["allContracts"][1]["user"]["id"]), self.user2.id
         )
 
     def test_get_contract_by_id(self):
@@ -201,11 +274,16 @@ class GraphqlTestCase(TestCase):
                 }}
             }}
         """
-        result = schema.execute(query)
-        self.assertIsNone(result.errors)
-        self.assertIsNotNone(result.data["getContractsByUserId"])
+        response = self.client.post(
+            '/graphql/', 
+            json.dumps({'query': query}),
+            content_type='application/json',
+            HTTP_AUTHORIZATION=f"Bearer {self.token}"
+        )
+        content = json.loads(response.content)['data']
+        self.assertIsNotNone(content["getContractsByUserId"])
         self.assertEqual(
-            int(result.data["getContractsByUserId"][0]["user"]["id"]), self.user1.id
+            int(content["getContractsByUserId"][0]["user"]["id"]), self.user1.id
         )
 
     def test_update_contract(self):
@@ -231,24 +309,28 @@ class GraphqlTestCase(TestCase):
                 }}
             }}
         """
-        schema = graphene.Schema(mutation=Mutation, query=Query)
-        result = schema.execute(query)
+        response = self.client.post(
+            '/graphql/', 
+            json.dumps({'query': query}),
+            content_type='application/json',
+            HTTP_AUTHORIZATION=f"Bearer {self.token}"
+        )
+        content = json.loads(response.content)['data']
         updated_contract = Contract.objects.get(id=self.contract1.id)
-        self.assertIsNone(result.errors)
-        self.assertIsNotNone(result.data["updateContract"])
+        self.assertIsNotNone(content["updateContract"])
         self.assertEqual(
-            int(result.data["updateContract"]["contract"]["id"]), self.contract1.id
+            int(content["updateContract"]["contract"]["id"]), self.contract1.id
         )
         self.assertEqual(
-            result.data["updateContract"]["contract"]["description"],
+            content["updateContract"]["contract"]["description"],
             updated_contract.description,
         )
         self.assertEqual(
-            result.data["updateContract"]["contract"]["description"],
+            content["updateContract"]["contract"]["description"],
             "Updated contract123",
         )
         self.assertEqual(
-            result.data["updateContract"]["message"], "Contract updated successfully."
+            content["updateContract"]["message"], "Contract updated successfully."
         )
 
     def test_delete_contract(self):
@@ -260,14 +342,17 @@ class GraphqlTestCase(TestCase):
                 }}
             }}
         """
-        schema = graphene.Schema(mutation=Mutation, query=Query)
-        result = schema.execute(query)
+        response = self.client.post(
+            '/graphql/', 
+            json.dumps({'query': query}),
+            content_type='application/json',
+            HTTP_AUTHORIZATION=f"Bearer {self.token}"
+        )
+        content = json.loads(response.content)['data']
         check_deleted_contract = self.get_object_or_none(Contract, id=self.contract1.id)
-        print(result)
-        print(check_deleted_contract)
-        self.assertIsNone(result.errors)
+
         self.assertEqual(check_deleted_contract, None)
-        self.assertIsNotNone(result.data["deleteContract"])
+        self.assertIsNotNone(content["deleteContract"])
         self.assertEqual(
-            result.data["deleteContract"]["message"], "Contract deleted successfully."
+            content["deleteContract"]["message"], "Contract deleted successfully."
         )
