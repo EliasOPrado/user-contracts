@@ -11,7 +11,6 @@ from django.test import TestCase
 from graphene_django.utils.testing import graphql_query
 
 
-
 # Create your tests here.
 class GraphqlTestCase(TestCase):
     def setUp(self):
@@ -35,8 +34,7 @@ class GraphqlTestCase(TestCase):
         self.token = self.get_token_for_user(self.user1)
 
     def get_token_for_user(self, user):
-        graphql_url = 'http://localhost:8000/graphql/'  # Update this with your actual URL
-        response = self.client.post(graphql_url, json.dumps({
+        response = self.client.post('/graphql/', json.dumps({
             'query': '''
                 mutation {
                     tokenAuth(username: "user1", password: "password123") {
