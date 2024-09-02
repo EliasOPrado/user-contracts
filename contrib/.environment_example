@@ -1,0 +1,9 @@
+DB_HOST=<host example>
+DB_USER=<db user>
+DB_PASSWORD=<db password>
+DB_NAME=<db name>
+SECRET_KEY=<django secret key>
+# example
+DATABASE_URL=postgres://myuser:mypassword@myrdsinstance.amazonaws.com:5432/mydatabase
+DEBUG=True
+DJANGO_ALLOWED_HOSTS=<list of allowed hosts separated by coma>
