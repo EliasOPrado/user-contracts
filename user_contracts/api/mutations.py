@@ -13,10 +13,11 @@ class CreateUserMutation(graphene.Mutation):
     """
     Mutation for creating a new user in the GraphQL API.
 
-    This mutation handles the creation of a new user by accepting an input 
-    of type `UserInput`. It returns the created user object, a success flag, 
+    This mutation handles the creation of a new user by accepting an input
+    of type `UserInput`. It returns the created user object, a success flag,
     and a message indicating the result of the operation.
     """
+
     class Arguments:
         input = UserInput(required=True)
 
@@ -42,10 +43,11 @@ class UpdateUserMutation(graphene.Mutation):
     """
     Mutation for updating an existing user in the GraphQL API.
 
-    This mutation handles the update of a existing user by accepting an input 
-    of type `UserInput` and `graphene.ID`. It returns the updated user object, a success flag, 
+    This mutation handles the update of a existing user by accepting an input
+    of type `UserInput` and `graphene.ID`. It returns the updated user object, a success flag,
     and a message indicating the result of the operation.
     """
+
     class Arguments:
         id = graphene.ID(required=True)
         input = UserInput(required=True)
@@ -76,13 +78,14 @@ class DeleteUserMutation(graphene.Mutation):
     """
     Mutation for deleting an existing user in the GraphQL API.
 
-    This mutation handles the delete of a existing user by accepting an input 
+    This mutation handles the delete of a existing user by accepting an input
     of type `graphene.ID`. In addiiton, before trying to delete a user, the code
     will check if the user is attached to a contract. If not, the user will be delete, else
     a message will be displayed not allowing the user to be removed.
-    It returns the updated user object, a success flag, 
+    It returns the updated user object, a success flag,
     and a message indicating the result of the operation.
     """
+
     class Arguments:
         id = graphene.ID(required=True)
 
@@ -93,11 +96,13 @@ class DeleteUserMutation(graphene.Mutation):
     def mutate(self, info, id):
         try:
             user = User.objects.get(pk=id)
-            
+
             # Check if the user is attached to any contracts
             if Contract.objects.filter(user=user).exists():
-                raise GraphQLError("Cannot delete user because they are attached to a contract.")
-            
+                raise GraphQLError(
+                    "Cannot delete user because they are attached to a contract."
+                )
+
             # Proceed with deletion if no contracts are found
             user.delete()
             return DeleteUserMutation(
@@ -113,11 +118,12 @@ class CreateContractMutation(graphene.Mutation):
     """
     Mutation for creating a new contract in the GraphQL API.
 
-    This mutation handles the creation of a new contract by accepting an input 
-    of type `ContractInput` attaching an user to it. 
-    This mutation also returns the created user object, a success flag, 
+    This mutation handles the creation of a new contract by accepting an input
+    of type `ContractInput` attaching an user to it.
+    This mutation also returns the created user object, a success flag,
     and a message indicating the result of the operation.
     """
+
     class Arguments:
         input = ContractInput(required=True)
 
@@ -153,10 +159,11 @@ class UpdateContractMutation(graphene.Mutation):
     """
     Mutation for updating an existing contract in the GraphQL API.
 
-    This mutation handles the update of a existing contract by accepting an input 
-    of type `ContractInput` and `graphene.ID`. It returns the updated contract object, a success flag, 
+    This mutation handles the update of a existing contract by accepting an input
+    of type `ContractInput` and `graphene.ID`. It returns the updated contract object, a success flag,
     and a message indicating the result of the operation.
     """
+
     class Arguments:
         id = graphene.ID(required=True)
         input = ContractInput(required=True)
@@ -191,10 +198,11 @@ class DeleteContractMutation(graphene.Mutation):
     """
     Mutation for deleting an existing contract in the GraphQL API.
 
-    This mutation handles the delete of a existing contract by accepting an input 
-    of type `graphene.ID`. It returns the updated user object, a success flag, 
+    This mutation handles the delete of a existing contract by accepting an input
+    of type `graphene.ID`. It returns the updated user object, a success flag,
     and a message indicating the result of the operation.
     """
+
     class Arguments:
         id = graphene.ID(required=True)
 

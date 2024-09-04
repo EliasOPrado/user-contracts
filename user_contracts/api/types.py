@@ -11,6 +11,7 @@ class UserType(DjangoObjectType):
     This class maps the User Django model to a GraphQL type, making it accessible
     in GraphQL queries and mutations.
     """
+
     class Meta:
         model = User
         field = "__all__"
@@ -23,6 +24,7 @@ class ContractType(DjangoObjectType):
     This class maps the User Django model to a GraphQL type, making it accessible
     in GraphQL queries and mutations.
     """
+
     class Meta:
         model = Contract
         fields = "__all__"

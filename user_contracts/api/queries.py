@@ -5,10 +5,11 @@ from user_contracts.models import Contract
 from .types import UserType, ContractType
 from graphql_jwt.decorators import login_required
 
+
 class Query(graphene.ObjectType):
     """
-    The Query object is responsible for the methods that 
-    will read data from the database. 
+    The Query object is responsible for the methods that
+    will read data from the database.
     """
 
     # User queries
@@ -16,7 +17,7 @@ class Query(graphene.ObjectType):
     all_contracts = graphene.List(ContractType)
     get_user = graphene.Field(UserType, id=graphene.Int(required=True))
 
-    # Contract queries 
+    # Contract queries
     get_contract = graphene.Field(ContractType, id=graphene.Int(required=True))
     get_contracts_by_user_id = graphene.List(
         ContractType, id=graphene.Int(required=True)
