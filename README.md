@@ -1,7 +1,42 @@
 # GraphQL API for User and Contract Management
 
 This README provides information on how to use the GraphQL API implemented for managing users and contracts. The API allows you to perform CRUD operations on both `User` and `Contract` models.
+## Table of contents
+1. [Application details](#applicatin-details)
+   1. [Technology used](#technology-used)
+   2. [Deployment](#deployment)
+   3. [Queries and mutations](queries.md)
+2. [How to run the application](#how-to-run-the-application)
+3. [Authentication](#authentication)
+    1. [Create user](#1-create-user)
+    2. [Obtain token](#2-obtain-token)
+    3. [List user with bearer token](#3-list-users-with-bearer-token)
 
+## Applicatin details
+This application provides a CRUD for table Users and Contracts in wich a user can have multiple contracts and contracts can have only a user.
+
+### Technology used
+For this appplication was obly used `python` and `django` to implement graphql using `graphene-django`package (bff) that facilitates the implementation. 
+
+### Deployment
+The application was deployed on Amazon AWS. Using `RDS` to create a postgres database and `EC2` to deploy the application.
+
+## How to run the application
+
+To run the application there is no need to create a container or many configuration files. 
+First you should create a virtual environment and activate it:
+```bash
+$ python3 -m venv venv
+$ source venv/bin/activate
+```
+Then you should install the requirements:
+```bash
+(venv)/path/to/project/$ pip install -r requirements.txt 
+```
+After installed the packages run the application with the following command:
+```bash
+(venv)/path/to/project/$ python manage.py runserver
+```
 ## Authentication
 
 ### 1. Create user
@@ -26,204 +61,4 @@ curl -X POST http://localhost:8000/graphql/ \
 -H "Authorization: Bearer YOUR_JWT_TOKEN" \
 -d '{"query": "query { allUsers { id username email } }"}'
 ```
-## Queries
 
-### Get All Users
-
-**Query:**
-```graphql
-query {
-  allUsers {
-    id
-    username
-    email
-  }
-}
-```
-Description: Fetches a list of all users with their id, username, and email.
-
-### Get All Contracts
-***Query:***
-```graphql
-query {
-  allContracts {
-    id
-    description
-    user
-    createdAt
-    fidelity
-    amount
-  }
-}
-```
-Description: Fetches a list of all contracts with details including id, description, userId, createdAt, fidelity, and amount.
-
-### Get a Single User by ID
-***Query:***
-```graphql
-query {
-  getUser(id: 1) {
-    id
-    username
-    email
-  }
-}
-```
-Description: Fetches a single user by their id. Replace 1 with the actual user ID.
-
-### Get a Single Contract by ID
-***Query:***
-```graphql
-query {
-  getContract(id: 2) {
-    id
-    description
-    user {
-      id
-    }
-    createdAt
-    fidelity
-    amount
-  }
-}
-```
-Description: Fetches a single contract by its id. Replace 1 with the actual contract ID.
-
-### Get Contracts by User ID
-***Query:***
-```graphql
-query {
-  getContractsByUserId(id:4){
-    id
-    amount
-    description
-    fidelity
-    amount
-    user {
-      id
-    }
-  }
-}
-```
-Description: Fetches contracts associated with a specific user by their userId. Replace 1 with the actual user ID.
-
-## Mutations
-
-### Create a User
-***Mutation:***
-```graphql
-mutation {
-  createUser(input: {
-    username: "newuser",
-    email: "newuser@example.com",
-    password: "password123"
-  }) {
-    user {
-      id
-      username
-      email
-    }
-    success
-    message
-  }
-}
-```
-Description: Creates a new user. Replace username, email, and password with the desired values.
-
-### Update a User
-***Mutation:***
-```graphql
-mutation {
-  updateUser(id: 1, input: {
-    username: "updateduser",
-    email: "updateduser@example.com",
-    password: "newpassword123"
-  }) {
-    user {
-      id
-      username
-      email
-    }
-    success
-    message
-  }
-}
-```
-Description: Updates an existing user by id. Replace 1 with the user ID and provide the updated username, email, and password.
-
-### Delete a User
-***Mutation:***
-```graphql
-mutation {
-  deleteUser(id: 1) {
-    success
-    message
-  }
-}
-```
-Description: Deletes a user by id. Replace 1 with the user ID.
-
-### Create a Contract
-***Mutation:***
-```graphql
-mutation {
-  createContract(input: {
-    description: "Super New contract",
-    userId: 1,
-    fidelity: 10,
-    amount: "102.50"
-  }) {
-    contract {
-      id
-      description
-      user {
-        id
-      }
-      createdAt
-      fidelity
-      amount
-    }
-    success
-		message
-  }
-}
-```
-Description: Creates a new contract. Replace description, userId, fidelity, and amount with the desired values.
-
-### Update a Contract
-***Mutation:***
-```graphql
-mutation {
-  updateContract(id: 2, input: {
-    description: "Updated contract123",
-    fidelity: 20,
-    amount: "150.00"
-  }) {
-    contract {
-      id
-      description
-      user {
-        id
-      }
-      createdAt
-      fidelity
-      amount
-    }
-    message
-		success
-  }
-}
-```
-Description: Updates an existing contract by id. Replace 1 with the contract ID and provide the updated description, fidelity, and amount.
-
-### Delete a Contract
-***Mutation:***
-```graphql
-mutation {
-  deleteContract(id: 1) {
-    success
-    message
-  }
-}
-```
-Description: Deletes a contract by id. Rep

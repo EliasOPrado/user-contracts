@@ -21,6 +21,9 @@ class GraphqlTestCase(TestCase):
         self.user2 = User.objects.create_user(
             username="user2", email="user2@example.com", password="password123"
         )
+        self.user3 = User.objects.create_user(
+            username="user3", email="user3@example.com", password="password123"
+        )
 
         # Create contracts
         self.contract1 = Contract.objects.create(
@@ -34,18 +37,24 @@ class GraphqlTestCase(TestCase):
         self.token = self.get_token_for_user(self.user1)
 
     def get_token_for_user(self, user):
-        response = self.client.post('/graphql/', json.dumps({
-            'query': '''
+        response = self.client.post(
+            "/graphql/",
+            json.dumps(
+                {
+                    "query": """
                 mutation {
                     tokenAuth(username: "user1", password: "password123") {
                         token
                     }
                 }
-            '''
-        }), content_type='application/json')
+            """
+                }
+            ),
+            content_type="application/json",
+        )
 
         data = json.loads(response.content)
-        return data['data']["tokenAuth"]["token"]
+        return data["data"]["tokenAuth"]["token"]
 
     def get_object_or_none(self, model_class, **kwargs):
         try:
@@ -64,15 +73,15 @@ class GraphqlTestCase(TestCase):
             }
         """
         response = self.client.post(
-            '/graphql/', 
-            json.dumps({'query': query}),
-            content_type='application/json',
-            HTTP_AUTHORIZATION=f"Bearer {self.token}"
+            "/graphql/",
+            json.dumps({"query": query}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=f"Bearer {self.token}",
         )
-        content = json.loads(response.content)['data']
+        content = json.loads(response.content)["data"]
 
-        self.assertIsNotNone(content['allUsers'])
-        self.assertEqual(content['allUsers'][0]['email'], self.user1.email)
+        self.assertIsNotNone(content["allUsers"])
+        self.assertEqual(content["allUsers"][0]["email"], self.user1.email)
         self.assertEqual(content["allUsers"][0]["username"], self.user1.username)
         self.assertEqual(content["allUsers"][1]["email"], self.user2.email)
         self.assertEqual(content["allUsers"][1]["username"], self.user2.username)
@@ -88,12 +97,12 @@ class GraphqlTestCase(TestCase):
             }}
         """
         response = self.client.post(
-            '/graphql/', 
-            json.dumps({'query': query}),
-            content_type='application/json',
-            HTTP_AUTHORIZATION=f"Bearer {self.token}"
+            "/graphql/",
+            json.dumps({"query": query}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=f"Bearer {self.token}",
         )
-        content = json.loads(response.content)['data'] 
+        content = json.loads(response.content)["data"]
         self.assertIsNotNone(content["getUser"])
         self.assertEqual(content["getUser"]["id"], str(self.user1.id))
         self.assertEqual(content["getUser"]["username"], self.user1.username)
@@ -115,17 +124,26 @@ class GraphqlTestCase(TestCase):
             }}
         """
         response = self.client.post(
-            '/graphql/', 
-            json.dumps({'query': query}),
-            content_type='application/json',
-            HTTP_AUTHORIZATION=f"Bearer {self.token}"
+            "/graphql/",
+            json.dumps({"query": query}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=f"Bearer {self.token}",
         )
-        content = json.loads(response.content)['data']
-        self.assertIsNotNone(content['getContractsByUserId'])
-        self.assertEqual(Decimal(content['getContractsByUserId'][0]['amount']), self.contract1.amount)
-        self.assertEqual(content['getContractsByUserId'][0]['description'], self.contract1.description)
-        self.assertEqual(content['getContractsByUserId'][0]['fidelity'], self.contract1.fidelity)
-        self.assertEqual(int(content['getContractsByUserId'][0]['user']['id']), self.user1.id)
+        content = json.loads(response.content)["data"]
+        self.assertIsNotNone(content["getContractsByUserId"])
+        self.assertEqual(
+            Decimal(content["getContractsByUserId"][0]["amount"]), self.contract1.amount
+        )
+        self.assertEqual(
+            content["getContractsByUserId"][0]["description"],
+            self.contract1.description,
+        )
+        self.assertEqual(
+            content["getContractsByUserId"][0]["fidelity"], self.contract1.fidelity
+        )
+        self.assertEqual(
+            int(content["getContractsByUserId"][0]["user"]["id"]), self.user1.id
+        )
 
     def test_update_user(self):
         query = f"""
@@ -143,12 +161,12 @@ class GraphqlTestCase(TestCase):
             }}
         """
         response = self.client.post(
-            '/graphql/', 
-            json.dumps({'query': query}),
-            content_type='application/json',
-            HTTP_AUTHORIZATION=f"Bearer {self.token}"
+            "/graphql/",
+            json.dumps({"query": query}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=f"Bearer {self.token}",
         )
-        content = json.loads(response.content)['data']
+        content = json.loads(response.content)["data"]
 
         self.assertIsNotNone(content["getContractsByUserId"])
         self.assertEqual(
@@ -182,12 +200,12 @@ class GraphqlTestCase(TestCase):
             }}
         """
         response = self.client.post(
-            '/graphql/', 
-            json.dumps({'query': query}),
-            content_type='application/json',
-            HTTP_AUTHORIZATION=f"Bearer {self.token}"
+            "/graphql/",
+            json.dumps({"query": query}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=f"Bearer {self.token}",
         )
-        content = json.loads(response.content)['data']
+        content = json.loads(response.content)["data"]
         updated_user = User.objects.get(id=self.user1.id)
         self.assertIsNotNone(content["updateUser"])
         self.assertEqual(int(content["updateUser"]["user"]["id"]), self.user1.id)
@@ -195,11 +213,30 @@ class GraphqlTestCase(TestCase):
             content["updateUser"]["user"]["username"], updated_user.username
         )
         self.assertEqual(content["updateUser"]["user"]["username"], "updateduser")
-        self.assertEqual(
-            content["updateUser"]["message"], "User updated successfully."
-        )
+        self.assertEqual(content["updateUser"]["message"], "User updated successfully.")
 
     def test_delete_user(self):
+        query = f"""
+            mutation {{
+                deleteUser(id: {self.user3.id}) {{
+                    success
+                    message
+                }}
+            }}
+        """
+        response = self.client.post(
+            "/graphql/",
+            json.dumps({"query": query}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=f"Bearer {self.token}",
+        )
+        content = json.loads(response.content)["data"]
+        check_deleted_user = self.get_object_or_none(User, id=self.user3.id)
+        self.assertEqual(check_deleted_user, None)
+        self.assertIsNotNone(content["deleteUser"])
+        self.assertEqual(content["deleteUser"]["message"], "User deleted successfully.")
+
+    def test_try_deleting_user_attached_to_contract(self):
         query = f"""
             mutation {{
                 deleteUser(id: {self.user1.id}) {{
@@ -209,18 +246,17 @@ class GraphqlTestCase(TestCase):
             }}
         """
         response = self.client.post(
-            '/graphql/', 
-            json.dumps({'query': query}),
-            content_type='application/json',
-            HTTP_AUTHORIZATION=f"Bearer {self.token}"
+            "/graphql/",
+            json.dumps({"query": query}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=f"Bearer {self.token}",
         )
-        content = json.loads(response.content)['data']
+        content = json.loads(response.content)["errors"]
         check_deleted_user = self.get_object_or_none(User, id=self.user1.id)
-        
-        self.assertEqual(check_deleted_user, None)
-        self.assertIsNotNone(content["deleteUser"])
+        self.assertEqual(check_deleted_user, self.user1)
         self.assertEqual(
-            content["deleteUser"]["message"], "User deleted successfully."
+            content[0]["message"],
+            "Could not delete user: Cannot delete user because they are attached to a contract.",
         )
 
     def test_list_contracts(self):
@@ -239,23 +275,19 @@ class GraphqlTestCase(TestCase):
             }
         """
         response = self.client.post(
-            '/graphql/', 
-            json.dumps({'query': query}),
-            content_type='application/json',
-            HTTP_AUTHORIZATION=f"Bearer {self.token}"
+            "/graphql/",
+            json.dumps({"query": query}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=f"Bearer {self.token}",
         )
-        content = json.loads(response.content)['data']
+        content = json.loads(response.content)["data"]
         self.assertIsNotNone(content["allContracts"])
         self.assertEqual(int(content["allContracts"][0]["id"]), self.contract1.id)
         self.assertEqual(
             content["allContracts"][0]["description"], self.contract1.description
         )
-        self.assertEqual(
-            int(content["allContracts"][0]["user"]["id"]), self.user1.id
-        )
-        self.assertEqual(
-            int(content["allContracts"][1]["user"]["id"]), self.user2.id
-        )
+        self.assertEqual(int(content["allContracts"][0]["user"]["id"]), self.user1.id)
+        self.assertEqual(int(content["allContracts"][1]["user"]["id"]), self.user2.id)
 
     def test_get_contract_by_id(self):
         query = f"""
@@ -273,12 +305,12 @@ class GraphqlTestCase(TestCase):
             }}
         """
         response = self.client.post(
-            '/graphql/', 
-            json.dumps({'query': query}),
-            content_type='application/json',
-            HTTP_AUTHORIZATION=f"Bearer {self.token}"
+            "/graphql/",
+            json.dumps({"query": query}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=f"Bearer {self.token}",
         )
-        content = json.loads(response.content)['data']
+        content = json.loads(response.content)["data"]
         self.assertIsNotNone(content["getContractsByUserId"])
         self.assertEqual(
             int(content["getContractsByUserId"][0]["user"]["id"]), self.user1.id
@@ -308,12 +340,12 @@ class GraphqlTestCase(TestCase):
             }}
         """
         response = self.client.post(
-            '/graphql/', 
-            json.dumps({'query': query}),
-            content_type='application/json',
-            HTTP_AUTHORIZATION=f"Bearer {self.token}"
+            "/graphql/",
+            json.dumps({"query": query}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=f"Bearer {self.token}",
         )
-        content = json.loads(response.content)['data']
+        content = json.loads(response.content)["data"]
         updated_contract = Contract.objects.get(id=self.contract1.id)
         self.assertIsNotNone(content["updateContract"])
         self.assertEqual(
@@ -341,12 +373,12 @@ class GraphqlTestCase(TestCase):
             }}
         """
         response = self.client.post(
-            '/graphql/', 
-            json.dumps({'query': query}),
-            content_type='application/json',
-            HTTP_AUTHORIZATION=f"Bearer {self.token}"
+            "/graphql/",
+            json.dumps({"query": query}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=f"Bearer {self.token}",
         )
-        content = json.loads(response.content)['data']
+        content = json.loads(response.content)["data"]
         check_deleted_contract = self.get_object_or_none(Contract, id=self.contract1.id)
 
         self.assertEqual(check_deleted_contract, None)
