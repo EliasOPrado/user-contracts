@@ -11,6 +11,8 @@ This README provides information on how to use the GraphQL API implemented for m
     1. [Create user](#1-create-user)
     2. [Obtain token](#2-obtain-token)
     3. [List user with bearer token](#3-list-users-with-bearer-token)
+4. [Database](#database)
+5. [Deployment](#deployment)
 
 ## Applicatin details
 This application provides a CRUD for table Users and Contracts in wich a user can have multiple contracts and contracts can have only a user.
@@ -61,4 +63,17 @@ curl -X POST http://localhost:8000/graphql/ \
 -H "Authorization: Bearer YOUR_JWT_TOKEN" \
 -d '{"query": "query { allUsers { id username email } }"}'
 ```
+## Database 
+
+For the database creation was used AWS RDS and with TCP connection from any IP address to facilitate and speed of the project. 
+With it was used the `dj-database-url` package to use the database url to connect with the AWS RDS database. 
+
+```bash
+# example of variable with connection. 
+DATABASE_URL=postgres://myuser:mypassword@myrdsinstance.amazonaws.com:5432/mydatabase
+```
+## Deployment
+
+For deployment was used AWS ec2 service to deploy the application using Ubuntu instance. 
+Where I did a clone directly into the ec2 terminal from aws.
 
