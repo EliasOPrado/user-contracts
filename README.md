@@ -20,9 +20,6 @@ This application provides a CRUD for table Users and Contracts in wich a user ca
 ### Technology used
 For this appplication was obly used `python` and `django` to implement graphql using `graphene-django`package (bff) that facilitates the implementation. 
 
-### Deployment
-The application was deployed on Amazon AWS. Using `RDS` to create a postgres database and `EC2` to deploy the application.
-
 ## How to run the application
 
 To run the application there is no need to create a container or many configuration files. 
