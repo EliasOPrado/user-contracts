@@ -23,7 +23,7 @@ class Query(graphene.ObjectType):
         ContractType, id=graphene.Int(required=True)
     )
 
-    @login_required
+    # @login_required
     def resolve_get_contracts_by_user_id(self, info, id):
         """This method will return a lisf of contracts attached to a user"""
         try:
@@ -33,7 +33,7 @@ class Query(graphene.ObjectType):
         except Exception as e:
             raise GraphQLError(f"Exception error: {str(e)}")
 
-    @login_required
+    # @login_required
     def resolve_get_user(self, info, id):
         """This method will return a user from an user id"""
         try:
@@ -41,7 +41,7 @@ class Query(graphene.ObjectType):
         except User.DoesNotExist:
             raise GraphQLError("User does not exist.")
 
-    @login_required
+    # @login_required
     def resolve_get_contract(self, info, id):
         """This method will return a contract from an contract id"""
         try:
@@ -49,12 +49,12 @@ class Query(graphene.ObjectType):
         except Contract.DoesNotExist:
             raise GraphQLError("Contract does not exist.")
 
-    @login_required
+    # @login_required
     def resolve_all_users(self, info):
         """This method will return a list of users"""
         return User.objects.all()
 
-    @login_required
+    # @login_required
     def resolve_all_contracts(self, info):
         """This method will return a list of contracts"""
         return Contract.objects.all()

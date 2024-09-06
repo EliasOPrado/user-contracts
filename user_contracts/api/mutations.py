@@ -92,7 +92,7 @@ class DeleteUserMutation(graphene.Mutation):
     success = graphene.Boolean()
     message = graphene.String()
 
-    @login_required
+    # @login_required
     def mutate(self, info, id):
         try:
             user = User.objects.get(pk=id)
@@ -131,7 +131,7 @@ class CreateContractMutation(graphene.Mutation):
     success = graphene.Boolean()
     message = graphene.String()
 
-    @login_required
+    # @login_required
     def mutate(self, info, input):
         try:
             user = User.objects.get(pk=input.user_id)
@@ -172,7 +172,7 @@ class UpdateContractMutation(graphene.Mutation):
     success = graphene.Boolean()
     message = graphene.String()
 
-    @login_required
+    # @login_required
     def mutate(self, info, id, input):
         try:
             contract = Contract.objects.get(pk=id)
@@ -209,7 +209,7 @@ class DeleteContractMutation(graphene.Mutation):
     success = graphene.Boolean()
     message = graphene.String()
 
-    @login_required
+    # @login_required
     def mutate(self, info, id):
         try:
             contract = Contract.objects.get(pk=id)
